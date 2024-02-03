@@ -409,4 +409,4 @@ function rtlimguard_guardstart()
         }
     }
 }
-add_action('init', 'rtlimguard_guardstart');
+add_action('plugins_loaded', 'rtlimguard_guardstart');
