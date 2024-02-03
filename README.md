@@ -1,5 +1,6 @@
 # WordPress Rate Limit Guard ![](https://img.shields.io/badge/Wordpress-Plugin.svg) ![](https://img.shields.io/badge/Version-1.0.1-brightgreen.svg)
 This plugin allows you to have a simple rate limit option to protect the site against DDoS or brute force attacks.
+It is suitable to Prevent against IP Stresser and booter scripts that want to increase the consumption of your site's resources with a "Slow" method.
 
  Added:
 - [x] Cache Plugins support
