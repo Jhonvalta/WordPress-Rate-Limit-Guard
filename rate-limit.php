@@ -5,7 +5,6 @@
  * Version: 1.0
  * Author: Co Stresser
  * License: GPL2
- * Plugin URI: https://ip-stresser.co/
  */
 
 add_action('admin_menu', 'rtlimguard_menu');
