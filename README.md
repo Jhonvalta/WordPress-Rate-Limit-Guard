@@ -7,7 +7,8 @@ It is suitable to Prevent against IP Stresser and booter scripts that want to in
 - [x] Cache Plugins support
 
 ## WordPress plugins
- - The plugin has been submitted to the WordPress repository and will soon be available in the WordPress plugins.
+ - The plugin has been submitted to the WordPress repository:
+ - https://wordpress.org/plugins/rate-limit-co/
 
 ## Install
 
