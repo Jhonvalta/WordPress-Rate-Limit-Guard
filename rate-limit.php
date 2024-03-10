@@ -7,11 +7,20 @@
  * License: GPL2
  */
 
+
 add_action('admin_menu', 'rtlimguard_menu');
+
 function rtlimguard_menu()
 {
-    add_menu_page('RateLimit Guard', 'RateLimit Guard', 'manage_options', 'rate_limit_guard', 'rtlimguard_init', 'dashicons-shield');
+    add_menu_page('RateLimit Guard', 'RateLimit Guard', 'manage_options', 'rate-limit-co', 'rtlimguard_init', 'dashicons-shield');
 }
+
+
+function rtlimguard_init()
+{
+if(current_user_can( 'manage_options') ){
+
+	
 
 if (!class_exists('WP_List_Table'))
 {
@@ -26,8 +35,8 @@ class rtlimguard_blockedip_table_list extends WP_List_Table
         global $status, $page;
 
         parent::__construct(array(
-            'singular' => 'Rate Limit CO',
-            'plural' => 'Rate Limit CO',
+            'singular' => 'Rate Limit Guard',
+            'plural' => 'Rate Limit Guard',
         ));
     }
     function column_default($item, $column_name)
@@ -38,9 +47,9 @@ class rtlimguard_blockedip_table_list extends WP_List_Table
     function get_columns()
     {
         $columns = array(
-            'ip' => __('IP', 'rate_limit_guard') ,
-            'count' => __('How many times blocked?', 'rate_limit_guard') ,
-            'date' => __('Date', 'rate_limit_guard') ,
+            'ip' => __('IP', 'rate-limit-co') ,
+            'count' => __('How many times blocked?', 'rate-limit-co') ,
+            'date' => __('Date', 'rate-limit-co') ,
         );
         return $columns;
     }
@@ -49,7 +58,7 @@ class rtlimguard_blockedip_table_list extends WP_List_Table
     } // Remove navigation
     function column_date($item)
     {
-        return date('Y-m-d h:i:s', $item['date']);
+        return wp_date('Y-m-d h:i:s', $item['date']);
     }
     function column_count($item)
     {
@@ -87,16 +96,23 @@ class rtlimguard_blockedip_table_list extends WP_List_Table
             $hidden,
             $sortable
         );
+		
         $total_items = $wpdb->get_var("SELECT COUNT(id) FROM {$wpdb->base_prefix}ratelimit");
-        $paged = isset($_REQUEST['paged']) ? max(0, intval($_REQUEST['paged'] - 1) * $per_page) : 0;
-        $paged = sanitize_text_field($paged);
-        $orderby = (isset($_REQUEST['orderby']) && in_array($_REQUEST['orderby'], array_keys($this->get_sortable_columns()))) ? $_REQUEST['orderby'] : 'date';
-        $orderby = sanitize_text_field($orderby);
-        $order = (isset($_REQUEST['order']) && in_array($_REQUEST['order'], array(
+
+        if(isset($_REQUEST['paged']))
+        $paged =sanitize_text_field( wp_unslash($_REQUEST['paged']));
+        $paged = isset($_REQUEST['paged']) ? max(0, intval($paged - 1) * $per_page) : 0;
+        if(isset($_REQUEST['orderby']))
+        $orderby =sanitize_text_field( wp_unslash($_REQUEST['orderby']));
+        $orderby = (isset($_REQUEST['orderby']) && in_array($orderby, array_keys($this->get_sortable_columns()))) ? $orderby : 'date';
+		
+	if(isset($_REQUEST['order']))
+       $order =sanitize_text_field( wp_unslash($_REQUEST['order']));
+
+        $order = (isset($_REQUEST['order']) && in_array($order, array(
             'asc',
             'desc'
-        ))) ? $_REQUEST['order'] : 'desc';
-        $order = sanitize_text_field($order);
+        ))) ? $order : 'desc';
         $this->items = $wpdb->get_results($wpdb->prepare("SELECT * FROM {$wpdb->base_prefix}ratelimit ORDER BY $orderby $order LIMIT %d OFFSET %d", $per_page, $paged) , ARRAY_A);
         $this->set_pagination_args(array(
             'total_items' => $total_items,
@@ -105,13 +121,9 @@ class rtlimguard_blockedip_table_list extends WP_List_Table
         ));
     }
 }
-function rtlimguard_init()
-{
-
     echo wp_kses_post('
 <div class="wrap">
-<img border="0" src="' . plugins_url('images/banner-772x250.png', __FILE__) . '" width="772" height="250"><br>
-<link rel="stylesheet" type="text/css" href="' . plugins_url('style.css', __FILE__) . '">');
+<img border="0" src="' . plugins_url('header.png', __FILE__) . '" width="772" height="250"><br>');
     if (!class_exists('Redis') and !class_exists('Memcached'))
     {
         echo wp_kses_post('<div align="left" class="notice inline notice-error notice-alt">
@@ -122,11 +134,9 @@ function rtlimguard_init()
     if (isset($_GET['action']))
     {
         global $wpdb;
-        if ($_GET['action'] == "flush")
-        {
+if ( $_GET['action'] == "flush" AND isset( $_GET['_wpnonce'] ) AND  wp_verify_nonce(sanitize_text_field( wp_unslash( $_GET['_wpnonce'])), 'rtlimguard-clrlogs' ) ) {
 
             $wpdb->query("TRUNCATE TABLE {$wpdb->base_prefix}ratelimit");
-
             echo wp_kses_post('<div align="left" class="notice inline notice-success notice-alt">
 <p><b>Success: </b> 
  All log Removed.</p>
@@ -136,16 +146,14 @@ function rtlimguard_init()
             $ratlimco_inlinescript = "
 <script>
 setTimeout(function(){
-window.location.href='admin.php?page=rate_limit_guard'; 
+window.location.href='admin.php?page=rate-limit-co'; 
 }, 3000); 
 </script>";
 
             echo wp_kses($ratlimco_inlinescript, array(
                 'script' => array() ,
             ));
-        }
-        elseif ($_GET['action'] == "submit" && !empty($_POST['req']))
-        {
+        }elseif ( $_GET['action'] == "submit" AND !empty($_POST['req']) AND isset( $_GET['_wpnonce'] ) AND  wp_verify_nonce( sanitize_text_field( wp_unslash($_GET['_wpnonce'])), 'rtlimguard-submitform' ) ) {
             $ratlimco_req = sanitize_text_field($_POST['req']);
             $ratlimco_sec = sanitize_text_field($_POST['sec']);
             $ratlimco_block = sanitize_text_field($_POST['block']);
@@ -162,18 +170,6 @@ window.location.href='admin.php?page=rate_limit_guard';
                     );
                     update_option('rtlimguard_settings', $rtlimguard_settings);
 
-                    //Sort RateLimit Plugin to reduce processing during block page display
-                    $path = str_replace(WP_PLUGIN_DIR . '/', '', __FILE__);
-                    if ($plugins = get_option('active_plugins'))
-                    {
-                        if ($key = array_search($path, $plugins))
-                        {
-                            array_splice($plugins, $key, 1);
-                            array_unshift($plugins, $path);
-                            update_option('active_plugins', $plugins);
-                        }
-                    }
-                    //----
                     echo wp_kses_post('<div align="left" class="notice inline notice-success notice-alt">
 <p><b>Success: </b> 
  All Data saved.</p>
@@ -217,8 +213,9 @@ window.location.href='admin.php?page=rate_limit_guard';
     $request = $rtlimguard_settings['req'];
     $period = $rtlimguard_settings['seq'];
     $called = $rtlimguard_settings['block'];
+$rtlimguard_posturl = wp_nonce_url( 'admin.php?page=rate-limit-co&action=submit', 'rtlimguard-submitform' );
 
-    $ratlimco_content_1 = '<form method="post" action="admin.php?page=rate_limit_guard&action=submit">
+    $ratlimco_content_1 = '<form method="post" action="'.$rtlimguard_posturl.'">
 
 If an IP sends <input type="number" min="5" max="15" name="req" style="width: 5em;" value="' . $request . '"> requests in <input type="number" min="10" max="20" name="sec" style="width: 6em;" value="' . $period . '"> Seconds, block it for <input type="number" min="20" max="3600" name="block" style="width: 6em;" value="' . $called . '"> seconds.<br>
 Default is 7 Request per 10 Seconds - Max Block time is 3600.';
@@ -252,14 +249,16 @@ Default is 7 Request per 10 Seconds - Max Block time is 3600.';
 
     $table = new rtlimguard_blockedip_table_list();
     $table->prepare_items();
+$rtlimguard_flashurl = wp_nonce_url( 'admin.php?page=rate-limit-co&action=flush', 'rtlimguard-clrlogs' );
 
     echo wp_kses_post('
     <form id="persons-table" method="GET">
-        <input type="hidden" name="page" value="' . $_REQUEST['page'] . '"/>
+        <input type="hidden" name="page" value="' . sanitize_text_field( wp_unslash($_REQUEST['page'])) . '"/>
         ' . $table->display() . '
     </form>
-  <a class="button button-secondary" href="admin.php?page=rate_limit_guard&action=flush" >Clear Log</a>
+  <a class="button button-secondary" href="'.$rtlimguard_flashurl.'" >Clear Log</a>
 </div>');
+}
 }
 //Create db
 global $rtlimguard_version;
@@ -334,10 +333,10 @@ function rtlimguard_guardstart()
                 'date' => $time,
             ));
         }
-        echo wp_kses_post('<p style="text-align:center"><img border="0" src="' . plugins_url('images/banner-772x250.png', __FILE__) . '" width="772" height="250"></p>
+        echo wp_kses_post('<p style="text-align:center"><img border="0" src="' . plugins_url('header.png', __FILE__) . '" width="772" height="250"></p>
 <p style="text-align:center"><strong><span style="font-size:16px;font-family:Courier New,Courier">Your request (' . $ip . ')  is temporarily blocked! Wait a few seconds and then try again.</span></strong></p>
 <p style="text-align:center">&nbsp;</p>
-<p style="text-align:center"><span style="font-size:16px;font-family:Courier New,Courier">Powered by <a href="https://wordpress.org/plugins/rate-limit-guard/" target="_blank">Rate Limit Guard</a></span></p>
+<p style="text-align:center"><span style="font-size:16px;font-family:Courier New,Courier">Powered by <a href="https://wordpress.org/plugins/rate-limit-co/" target="_blank">Rate Limit Guard</a></span></p>
 ');
     }
     if (!is_user_logged_in())
