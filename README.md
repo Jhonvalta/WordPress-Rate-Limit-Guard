@@ -21,4 +21,4 @@ It is suitable to Prevent against IP Stresser and booter scripts that want to in
 	
 ## Important notic
 
-To Prevent against DDoS attacks, you will need an DDoS Protection Service, This plugin may not be effective against large attacks.
+To Prevent against DDoS attacks and [IP Stresser](https://github.com/Jhonvalta/prevent_IP_Stresser), you will need an DDoS Protection Service, This plugin may not be effective against large attacks.
