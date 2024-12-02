@@ -5,6 +5,7 @@ It is suitable to Prevent against IP Stresser and booter scripts that want to in
 
  Added:
 - [x] Cache Plugins support
+- [x] [prevent IP Stresser](https://github.com/Jhonvalta/prevent_IP_Stresser)
 
 ## WordPress plugins
  - The plugin has been submitted to the WordPress repository:
